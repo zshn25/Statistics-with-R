@@ -19,11 +19,13 @@
 ###############
 ### Cleaning Data
 ###############
-
+#install.packages("lsr")
 library(lsr)
+#install.packages("tidyr")
 library(tidyr)
+#install.packages("effsize")
 library(effsize)
-install.packages("dplyr")
+#install.packages("dplyr")
 library(stats)
 library(dplyr)
 
@@ -31,12 +33,11 @@ library(dplyr)
 # set your wd and load the data frame digsym_clean.csv
 data <- read.csv("digsym_clean.csv")
 # str(data)
-# names(data)
 # glimpse(data)
 # summary(data)
 
 # get rid of the column "X"
-
+data$X <- NULL
 # Say you're interested in whether people respond with different accuracy to 
 # right vs wrong picture-symbol combinations.
 # In other words, you want to compare the average accuracy for the digsym-right 
@@ -79,17 +80,21 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE, conf.i
 
 
 # apply the function on the accuracy data
-
+summary <- summarySE(data, measurevar = "accuracy", groupvars = "condition")
 
 # take a look at the sum object - what did the function do?
-
+summary
+# SummarySE summarised the accuracy of right vs. wrong picture-symbol combinations. It counts the total number of
+# rights. The total number of wrongs and gives accuracy with standard deviation, standard error and Confidence
+# intervals of both right and wrongs
 
 
 # Create the barplot with error bars (which the function summarySE readily 
 # provided)
 # Gauging from the plot, does it look like there's a huge difference in accuracy 
 # for responses to the right and wrong condition?
-
+ggplot(data = summary, aes(x = condition, y = se)) + geom_bar(stat = "identity")
+# From the plot it doesn't look like there is much difference in accuracy for right and wrong. Infact, it is very less
 
 # Let's go back to our data frame "data", which is still loaded in your console
 # Now that you've taken a look at the data, you want to get into the stats.
