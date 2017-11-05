@@ -63,25 +63,32 @@ data$Subject <- as.factor(data$Subject)
 data$File <- str_pad(data$File, width = 8, side = "right", pad = "0")
 
 # create a new column ("condition" (levels:right, wrong)) by extracting "right"/"wrong" using substr
-
+data$condition <- substr(data$File, 3, 7)
 
 # get rid of obsolete File column
-
+data$File <- NULL
 
 # missing values, outliers:
 
 # do we have any NAs in the data, and if so, how many and where are they?
-
+sum(is.na(data))
 
 # create an "accuracy" column using if-statement
 # if actual response (StimulDS1.RESP) is the same as the correct response (StimulDS1.CRESP), put 
 # in value 1, otherwise put 0
+#if(data$StimulDS1.RESP == data$StimulDS1.CRESP) {
+#  data$accuracy <- 1
+#} else {
+#  data$accuracy <- 0
+#}
 
+data$accuracy <- as.numeric(data$StimulDS1.RESP == data$StimulDS1.CRESP)
 
 # how many wrong answers do we have in total?
+length(data$accuracy) - sum(data$accuracy)
 
 # whats the percentage of wrong responses?
-
+(length(data$accuracy) - sum(data$accuracy)) / length(data$accuracy)
 
 # create correct_RT column
 
