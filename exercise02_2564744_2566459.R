@@ -32,23 +32,27 @@ tail(data, 20)
 any(is.na(data))
 
 # get rid of the row number column
-
+data$X <- NULL
 
 # put the Sub_Age column second
-
+data <- subset(data, select = c(ExperimentName, Sub_Age, Group:File))
 
 # replace the values of the "ExperimentName" column with something shorter, more legible
-
+data$ExperimentName <- str_replace(data$ExperimentName, "Digit Symbol - Kopie", "DSK")
 
 # keep only experimental trials (encoded as "Trial:2" in List), get rid of practice trials 
 # (encoded as "Trial:1"). When you do this, assign the subset of the data to a variable "data2", 
 # then assign data2 to data and finally remove data2.
+data2 <- data$List
+data2 <- str_replace(data2, "Trial:1", "NA")
+data$List <- data2
+data2 <- NULL
 
 # separate Sub_Age column to two columns, "Subject" and "Age", using the function "separate"
-
+data <- separate(data, Sub_Age, c("Subject", "Age"))
 
 # make subject a factor
-
+data$Subject <- as.factor(data$Subject)
 
 
 # extract experimental condition from the "File" column:
@@ -56,7 +60,7 @@ any(is.na(data))
 
 # 1) using str_pad to make values in the File column 8 chars long, by putting 0 on the end  (i.e., 
 # same number of characters, such that "1_right" should be replaced by "1_right0" etc)
-
+data$File <- str_pad(data$File, width = 8, side = "right", pad = "0")
 
 # create a new column ("condition" (levels:right, wrong)) by extracting "right"/"wrong" using substr
 
