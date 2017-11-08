@@ -40,7 +40,7 @@ getwd()
 
 ## c) Change your working directory to another directory.
 
-setwd("C:/UdS")
+# setwd("C:/UdS")
 
 
 ###############
@@ -194,7 +194,8 @@ plot(x, y)
 ##    instead of a line. 
 ##    Using plot(), specify the y axis to range from 0 to 0.8, and plot a line 
 ##    instead of the circles.
-plot(x, y>=0 & y<=0.8, type = "l")
+## plot(x, y>=0 & y<=0.8, type = "l")
+plot(x, y, type = "l", ylim = c(0, 0.8))
 
 ## e) We want to have a vertical line to represent the mean of our distribution.
 ##    'abline()' can do this for us. Look up help for abline(). 
@@ -215,7 +216,12 @@ plot(b1temp, dnorm(b1temp, mean.b1temp, sd.b1temp))
 
 ## h) We observe two tempareatures (36.91 and 38.13). What's the likelihood that
 ##    these temperatures respectively come from the normal distribution from g)?
-sum(b1temp == 36.91 | b1temp == 38.13) / length(b1temp)
+#sum(b1temp == 36.91 | b1temp == 38.13) / length(b1temp)
+
+# We need to find the likelihood of these values coming from a normal distribution
+pnorm(36.91, mean.b1temp, sd.b1temp, lower.tail = FALSE,) * 2
+pnorm(38.13, mean.b1temp, sd.b1temp, lower.tail = FALSE,) * 2
+
 # Gives the likelihood of the two temperatures
 
 ## i) Use the random sampling function in R to generate 20 random samples from
@@ -226,4 +232,5 @@ hist(sample(b1temp, 20))
 hist(sample(b1temp, 20))
 hist(sample(b1temp, 20))
 hist(sample(b1temp, 20))
+hist(rnorm(b1temp, mean.b1temp, sd.b1temp))
 # Each time, a new distribution is seen. This is because of the random sampling of the data

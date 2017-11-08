@@ -13,13 +13,19 @@
 data <- read.csv("digsym.csv")
 
 # Load the libraries languageR, stringr, dplyr and tidyr.
-library(languageR)
-library(stringr)
-library("dplyr")
-library(tidyr)
+check.install <-function(package) {
+  if(is.element(package, rownames(installed.packages())) == FALSE) {install.packages(package)}
+  library(package, character.only = TRUE)
+}
+
+check.install("languageR")
+check.install("stringr")
+check.install("dplyr")
+check.install("tidyr")
 
 # how many rows, how many columns does that data have?
-dim(data)
+# dim(data)
+nrow(data)
 
 # take a look at the structure of the data frame using "glimpse"
 glimpse(data)
@@ -30,12 +36,15 @@ tail(data, 20)
 
 # Is there any missing data in any of the columns?
 any(is.na(data))
+sapply(X = data, function(col) {sum(is.na(col))})
 
 # get rid of the row number column
 data$X <- NULL
 
 # put the Sub_Age column second
 data <- subset(data, select = c(ExperimentName, Sub_Age, Group:File))
+#better method
+data <- select(data, ExperimentName, Sub_Age, Group:File)
 
 # replace the values of the "ExperimentName" column with something shorter, more legible
 data$ExperimentName <- str_replace(data$ExperimentName, "Digit Symbol - Kopie", "DSK")
@@ -45,15 +54,17 @@ data$ExperimentName <- str_replace(data$ExperimentName, "Digit Symbol - Kopie", 
 # then assign data2 to data and finally remove data2.
 data2 <- data$List
 data2 <- str_replace(data2, "Trial:1", "NA")
-data$List <- data2
-data2 <- NULL
+# better way
+data2 <- subset(x = data, List == "Trial:2")
+data <- data2
+rm(data2)
 
 # separate Sub_Age column to two columns, "Subject" and "Age", using the function "separate"
 data <- separate(data, Sub_Age, c("Subject", "Age"))
 
 # make subject a factor
 data$Subject <- as.factor(data$Subject)
-
+data$Age <- as.integer((data$Age))
 
 # extract experimental condition from the "File" column:
 # the stimulus that people saw - did it correspond to a wrong or right digit-symbol combination?
@@ -63,10 +74,10 @@ data$Subject <- as.factor(data$Subject)
 data$File <- str_pad(data$File, width = 8, side = "right", pad = "0")
 
 # create a new column ("condition" (levels:right, wrong)) by extracting "right"/"wrong" using substr
-data$condition <- substr(data$File, 3, 7)
+data$condition <- substr(data$File, start = 3, stop = 7)
 
 # get rid of obsolete File column
-data$File <- NULL
+rm(data$File)
 
 # missing values, outliers:
 
@@ -76,34 +87,35 @@ sum(is.na(data))
 # create an "accuracy" column using if-statement
 # if actual response (StimulDS1.RESP) is the same as the correct response (StimulDS1.CRESP), put 
 # in value 1, otherwise put 0
-#if(data$StimulDS1.RESP == data$StimulDS1.CRESP) {
-#  data$accuracy <- 1
-#} else {
-#  data$accuracy <- 0
-#}
+data$accuracy <- ifelse(data$StimulDS1.RESP == data$StimulDS1.CRESP, 1, 0)
 
 data$accuracy <- as.numeric(data$StimulDS1.RESP == data$StimulDS1.CRESP)
 
 # how many wrong answers do we have in total?
 length(data$accuracy) - sum(data$accuracy)
+# better way
+sum(data$accuracy == 0)
 
 # whats the percentage of wrong responses?
-(length(data$accuracy) - sum(data$accuracy)) / length(data$accuracy)
+sum(data$accuracy == 0) / nrow(data$accuracy) * 100
 
 # create correct_RT column
-
+data$correct_RT <- ifelse(data$accuracy, data$StimulDS1.RT, NA)
 
 # create boxplot of correct_RT - any outliers?
+boxplot(data$correct_RT)
+# A lot of outliers
 
 # create histogram of correct_RT with bins set to 50
-
+hist(data$correct_RT, breaks = 50)
 
 # describe the two plots - any tails? any suspiciously large values?
 
 # view summary of correct_RT
-
+summary(data$correct_RT)
 
 # we got one apparent outlier: 13850
+data$correct_RT[data$correct_RT == 13852] <- NA
 
 # There is a single very far outlier. Remove it.
 
@@ -111,12 +123,17 @@ length(data$accuracy) - sum(data$accuracy)
 # dealing with the tail of the distribution: 
 # outlier removal
 # Now, remove all correct_RT which are more than 2.5. SD away from the grand mean
-
-
+m <- mean(data$correct_RT, na.rm = TRUE)
+d <- sd(data$correct_RT, na.rm = TRUE)
+data$correct_RT_2.5sd <- data$correct_RT
+#data$correct_RT_2.5sd[data$correct_RT > 2.5 * d + m] <- NA
+#data$correct_RT[data$correct_RT < mean(data$correct_RT) - 2.5 * sd(data$correct_RT)] <- NA
+data$correct_RT_2.5sd <- ifelse(data$correct_RT > m + 2.5 * d, NA, data$correct_RT)
+data$correct_RT_2.5sd <- ifelse(data$correct_RT < m - 2.5 * d, NA, data$correct_RT)
 
 # create new "correct_RT_2.5sd" column in data which prints NA if an RT value is below/above the cutoff
-
-
+boxplot(data$correct_RT_2.5sd)
+hist(data$correct_RT_2.5sd)
 # take a look at the outlier observations
 # any subjects who performed especially poorly?
 
