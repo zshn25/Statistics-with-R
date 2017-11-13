@@ -116,24 +116,33 @@ hist(mean50, breaks = 15)
 ## Navarro discusses this in more depth in chapter 10.
 
 ## a) What does a confidence interval mean from the perspective of replication?
-
+# COnfidence interval indicates how precisely a sample statistic estimates the population parameter. 
+# Or how likely replication of the similar statistics are to succeed. For example a 95% CI means, there
+# is a 95% chance that similar mean of unobserved data will be captured inside the interval while replicating
 
 ## b) Let's calculate the confidence interval for our means from the previous 
 ##    question.
 ##    First, install and load the packages 'lsr' and 'sciplot'
-
+check.install("lsr")
+check.install("sciplot")
 
 ## c) Look at the description of the function ciMean to see which arguments it takes.
-
+?ciMean
 
 ## d) Use ciMean to calculate the confidence interval of the dataset dative from
 ##    the previous exercise.
 ##    Also calculate the means for the variable LengthOfTheme.
-
+ciMean(dative)
+conf.LoT <- ciMean(dative$LengthOfTheme)
 
 ## e) Does the mean of the sample fall within the obtained interval? 
 ##    What does this mean?
-
+# mean(sample(dative$LengthOfTheme, 50))
+length(mean50[(mean50 > conf.LoT[1]) & (mean50 < conf.LoT[2])]) / 1000
+length(mean5[(mean5 > conf.LoT[1]) & (mean5 < conf.LoT[2])]) / 1000
+# ~20% of the time, the mean of samples fall within the obtained interval which is very less. IT means that 
+# 50 samples is still not enough to represent the whole population and that it why the mean of sample 
+# doesn't fall within the obtained interval
 
 ## f) As the description of dative mentions, the dataset describes the 
 ##    realization of the dative as NP or PP in two corpora.
@@ -143,13 +152,16 @@ hist(mean50, breaks = 15)
 ##    animate (AnimacyOfTheme) and how long the theme is (LengthOfTheme).
 ##    Plot this using the function bargraph.CI(). Look at the help for this function. 
 ##    Use the arguments 'x.factor' and 'response'.
+args(bargraph.CI)
+?bargraph.CI
 
-
+bargraph.CI(x.factor = dative$AnimacyOfTheme, response = dative$LengthOfTheme)
 ## g) Expand the plot from question f with the ci.fun argument 
 ##    (this argument takes 'ciMean'). 
 ##    Why does the ci differ in this new plot compared to the previous plot?
-
-
+bargraph.CI(x.factor = dative$AnimacyOfTheme, response = dative$LengthOfTheme, ci.fun = ciMean)
+# As the help document for ci.fun mentions, the default value is mean +/- standard error. But when we provide
+# ciMean as the ci.fun, it doesn't do +/- SE. That's why it differs from the previous plot
 
 ###############
 ### Exercise 3: Plotting graphs using ggplot.
@@ -166,12 +178,13 @@ hist(mean50, breaks = 15)
 # So I can find you quickly.)
 
 ## a) First install and load the ggplot2 package. Look at the help for ggplot.
-
+check.install("ggplot2")
 
 ## b) We're going to be plotting data from the dataframe 'ratings' 
 ##    (included in languageR). 
 ##    Look at the description of the dataset and the summary.
-
+?ratings
+str(ratings)
 
 ## For each word, we have three ratings (averaged over subjects), one for the 
 ## weight of the word's referent, one for its size, and one for the words' 
@@ -200,6 +213,8 @@ length <- c(mean(subset(ratings, Class == "animal")$Length), mean(subset(ratings
 ratings.2 <- data.frame(condition, frequency, length)
 ratings.2
 
+ggplot(ratings.2, aes(x = length, y = frequency, fill = condition)) + 
+  geom_bar(stat = "identity", show.legend = FALSE)
 
 ## d) Let's assume that we have additional data on the ratings of words. 
 ##    This data divides the conditions up into exotic and common animals 
@@ -218,8 +233,12 @@ occurrence <- c("common", "common", "exotic", "exotic")
 ratings.3 <- cbind(ratings.3, occurrence)
 ratings.3
 
-
+ggplot(ratings.3, aes(x = length, y = frequency, col = condition)) +
+  geom_point(aes(shape = occurrence, size = 4)) +
+  geom_line()
 ## e) Based on the graph you produced in question d, 
 ##    what can you conclude about how frequently 
 ##    people talk about plants versus animals, 
 ##    with regards to how common they are?
+# People talk about animals more frequently than about plants in general. Even more frequently about exotic animals
+# and even more rarely about exotic plants than common ones
