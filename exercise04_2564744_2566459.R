@@ -101,11 +101,16 @@ chisq.test(age)
 
 ## a) What is the null hypothesis, i.e. how often would we expect the participants to 
 ##    be correct by chance (in raw number and in percentage)?
+# Null hypothesis is that therapeutic touch doesn't work and the participants were not able to identify
+# which of their hands is below the experimenter's hand.
+# By chance, we expect them to get half of the trail right. i.e. 140/280 trials
 
 ## b) Using a chisquare test, what do you conclude about whether therapeutic touch 
 ##    works? 
 
+
 ## c) Now calculate significance using the binomial test as we used it in exercise 1.
+sum(dbinom(0:123 , size = 280, prob = 1/2))
 
 ## d) The results from these two tests are slightly different. Which test do you think 
 ##    is better for our data, and why?
