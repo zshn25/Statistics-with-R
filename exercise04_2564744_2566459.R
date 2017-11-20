@@ -68,19 +68,23 @@ ggplot(dutchSpeakersDistMeta, aes(x = AgeGroup, fill = Sex)) +
 
 ## c) Inspect the table 'age' you created. Does it look like there could be a significant 
 ##    difference between the sexes?
-age
-# Females are usually more than males except for the AgeGroup age35to44 where males are double than females
+head(age)
+
+# It seems that in each age group, except for age25to34 and age35to44, there are significantly more females than males
 
 ## d) We are going to calculate whether there's a difference between males and females 
 ##    regarding their age group
 ##    using the function chisq.test. Look at the help of this function. Then use the 
 ##    function to calculate whether there's a difference in our table 'age'. 
 ##    Is there a significant difference in age group?
-?chisq.test
+?chisq.test()
+chisq <- sum((age[1,] - age[2,])^2/age[2,]) #manually counted chi-square
 chisq.test(age)
-# We cannot reject the null hypothesis that there is no significant difference in age group since p-value is nearly 0.5
+
+# We can reject the null hypothesis that there is no significant difference in age group since p-value = 0.2311
 
 ## e) What are the degrees of freedom for our data? How are they derived?
+
 # Degrees of freedom is number of categories - 1. Since we have 5 categories age18to24, age25to34,
 # age35to44, age45to55 age56up as columns and 2 categories as rows, dof is (2-1)*(5-1) = 4
 
@@ -101,20 +105,34 @@ chisq.test(age)
 
 ## a) What is the null hypothesis, i.e. how often would we expect the participants to 
 ##    be correct by chance (in raw number and in percentage)?
+
 # Null hypothesis is that therapeutic touch doesn't work and the participants were not able to identify
 # which of their hands is below the experimenter's hand.
 # By chance, we expect them to get half of the trail right. i.e. 140/280 trials
 
 ## b) Using a chisquare test, what do you conclude about whether therapeutic touch 
 ##    works? 
+tt <- matrix(c(123, 157, 140, 140), ncol = 2, byrow = TRUE)
+colnames(tt) <- c("Correct", "Incorrect")
+rownames(tt) <- c("Observed", "Expected")
+tt <- as.table(tt)
+tt
+
+chisq.test(tt)
+
+#we reject the null hypothesis; the obtained frequencies differ significantly from expected ones
 
 
 ## c) Now calculate significance using the binomial test as we used it in exercise 1.
-sum(dbinom(0:123 , size = 280, prob = 1/2))
+sum(dbinom(123 , size = 280, prob = 1/2))
+
+#we reject the hypothesis the null hypothesis, as the probability of our data belonging to binomial distribution is very small
 
 ## d) The results from these two tests are slightly different. Which test do you think 
 ##    is better for our data, and why?
 
+#Chisquare test checks generally if our sample belongs to some distribution.
+#So, probably, in case of binomial data it is better to use specific binomial test.
 
 ##########
 ##Exercise 4.
@@ -123,3 +141,5 @@ sum(dbinom(0:123 , size = 280, prob = 1/2))
 ## What would be the problem of using the normal ChiSquare test in a case where 
 ## McNemar's test would be more appropriate?
 
+#For a ChiSquare test we assume that unpaired observations are unpaired from each other,
+#while McNemar's test is appropriate when independency not necessarily helb between the pairs
