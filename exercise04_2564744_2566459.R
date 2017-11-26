@@ -81,7 +81,7 @@ head(age)
 chisq <- sum((age[1,] - age[2,])^2/age[2,]) #manually counted chi-square
 chisq.test(age)
 
-# We can reject the null hypothesis that there is no significant difference in age group since p-value = 0.2311
+# We can reject the null hypothesis that there is no significant difference in age group since p-value = 0.5124
 
 ## e) What are the degrees of freedom for our data? How are they derived?
 
@@ -112,19 +112,23 @@ chisq.test(age)
 
 ## b) Using a chisquare test, what do you conclude about whether therapeutic touch 
 ##    works? 
-tt <- matrix(c(123, 157, 140, 140), ncol = 2, byrow = TRUE)
-colnames(tt) <- c("Correct", "Incorrect")
-rownames(tt) <- c("Observed", "Expected")
-tt <- as.table(tt)
-tt
+#tt <- matrix(c(123, 157, 140, 140), ncol = 2, byrow = TRUE)
+#colnames(tt) <- c("Correct", "Incorrect")
+#rownames(tt) <- c("Observed", "Expected")
+#tt <- as.table(tt)
+#tt
 
-chisq.test(tt)
+#chisq.test(tt)
 
-#we reject the null hypothesis; the obtained frequencies differ significantly from expected ones
+#You should have used simply chisq.test(c(123, 157)). If you supply expected counts as well, chisq.test() will calculate them again, thinking that 140 and 140 are actually observed values, which is not true.
+chisq.test(c(123, 154))
+
+#we cannot reject the null hypothesis because p>0.05. The obtained frequencies differ significantly from expected ones
 
 
 ## c) Now calculate significance using the binomial test as we used it in exercise 1.
-sum(dbinom(123 , size = 280, prob = 1/2))
+# sum(dbinom(123 , size = 280, prob = 1/2))
+pbinom(123, size = 280, prob = 0.5) * 2  #we need to multiply by 2, since our H0 is that the observed results are random, so we need to calculate binomial test, such that we take into account differences in both directions (both tails).
 
 #we reject the hypothesis the null hypothesis, as the probability of our data belonging to binomial distribution is very small
 
