@@ -118,7 +118,7 @@ head(data)
 # Collapse the data, using 
 # cast(data, var1 + var2 + var3 ... ~, function, value = var4, na.rm = T)
 library(reshape2)
-cdata <- dcast(data, Subject + Gender ~., mean, value.var = 'StimulDS1.RT')
+cdata <- dcast(na.omit(data), Subject + condition ~., mean, value.var = 'accuracy')
 head(cdata)
 
 # Create a histogram of the accuracy data depending on the right and wrong 
