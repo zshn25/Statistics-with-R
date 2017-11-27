@@ -34,7 +34,7 @@ library(effsize)
 
 # set your wd and load the data frame digsym_clean.csv
 getwd()
-# setwd("C:/UdS")
+setwd("D:/Studies_WS_17-18/Statistics with R")
 data <- read.csv("digsym_clean.csv")
 
 # get rid of the column "X"
@@ -86,15 +86,22 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE, conf.i
   return(datac)
 }
 
-# apply the function summarySE on the accuracy data grouping by right/wrong condition
-# (use the provided documentation inside the function for the arguments description)
+# apply the function on the accuracy data
+summary <- summarySE(data, measurevar = "accuracy", groupvars = "condition")
+
+# take a look at the sum object - what did the function do?
+summary
+# SummarySE summarised the accuracy of right vs. wrong picture-symbol combinations. It counts the total number of
+# rights. The total number of wrongs and gives accuracy with standard deviation, standard error and Confidence
+# intervals of both right and wrongs
 
 
-# Create the barplot (use ggplot2 for this and all tasks below) with error bars 
-# (which the function summarySE readily provided).
+# Create the barplot with error bars (which the function summarySE readily 
+# provided)
 # Gauging from the plot, does it look like there's a huge difference in accuracy 
 # for responses to the right and wrong condition?
-
+ggplot(data = summary, aes(x = condition, y = se)) + geom_bar(stat = "identity")
+#It doesn't look like there's much difference in accuracy from the plot
 
 # Let's go back to our data frame "data", which is still loaded in your console
 # Now that you've taken a look at the data, you want to get into the stats.
@@ -102,13 +109,17 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE, conf.i
 # wrong condition.
 # Why can't you compute a t-test on the data as they are now? 
 # Hint: which assumption is violated?
-
+head(data)
+# We cannot compute t-test because t-test assumes a normal distribution but here, the average accuracy data in the right and 
+# wrong condition is binomial
 
 # we need to reshape( - cast) the data to only one observation (average accuracy)
 # per subject and right/wrong condition 
 # Collapse the data, using 
 # cast(data, var1 + var2 + var3 ... ~, function, value = var4, na.rm = T)
-
+library(reshape2)
+cdata <- dcast(data, Subject + Gender ~., mean, value.var = 'StimulDS1.RT')
+head(cdata)
 
 # Create a histogram of the accuracy data depending on the right and wrong 
 # condition and display them side by side
