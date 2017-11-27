@@ -118,36 +118,38 @@ head(data)
 # Collapse the data, using 
 # cast(data, var1 + var2 + var3 ... ~, function, value = var4, na.rm = T)
 library(reshape2)
-cdata <- dcast(na.omit(data), Subject + condition ~., mean, value.var = 'accuracy')
-head(cdata)
+cdata <- dcast(data, Subject + condition ~'avgAccuracy', mean, na.rm = TRUE, value.var = 'accuracy')
+cdata
 
 # Create a histogram of the accuracy data depending on the right and wrong 
 # condition and display them side by side
-
+ggplot(data = cdata, aes(x = avgAccuracy, fill = condition)) +
+  geom_histogram(binwidth = .5, alpha = .5, position = "dodge")
 
 # Display the same data in a density plot 
-
+ggplot(data = cdata, aes(x = avgAccuracy, fill = condition)) + geom_density()
 
 # Based on the histograms and the density plots - are these data normally 
 # distibuted?
-
+# Yes, Based on the density plot and histogram, the data looks like it is normally distributed
 
 # Create a boxplot of the accuracy data
-
+ggplot(cdata, aes(x = condition, y = avgAccuracy)) + geom_boxplot()
 
 # Compute the t-test to compare the mean accuracy between wrong and right picture
 # combinations.
 # Do you need a paired t-test or independent sample t-test? why?
-
+t.test(avgAccuracy~condition, data = cdata, paired = T)
+# Since right and wrong conditions are independent of each other, they are not paired
 
 # What does the output tell you? What conclusions do you draw?
-
+#There is no significant difference in two groups. We cannot reject the null hypothesis
 
 # Compute the effect size using CohensD 
-
+cohensD(x = cdata$Subject, y = cdata$avgAccuracy, method = 'pooled')
 
 # How big it is? How do you interpret this result?
-
+# It is very big because it tells us that the difference is changed by 2.7 standard deviations which is very large
 
 # In addition to the long-format data we've just been working on, you may also 
 # encounter data sets in a wide format 
@@ -155,17 +157,17 @@ head(cdata)
 # Let's do a transformation of our data set to see how it would like in a wide 
 # format.
 # Use "spread" in tidyr.
-
+spread.cdata <- spread(cdata, condition, avgAccuracy)
 
 # Compute the t test again on the wide format data - note that for wide-format 
 # data you need to use a different annotation for the t-test.
-
+t.test(x = spread.cdata$right, y = spread.cdata$wrong, paired = FALSE)
 
 # Compare the t-test results from the wide-format and the long-format data.
-
+# They are exactly the same
 
 # Compute CohensD on the wide format data.
-
+cohensD(x = spread.cdata$right, y = spread.cdata$wrong, method = 'pooled')
 
 
 # Let's try the t-test again, but for a different question:
@@ -175,12 +177,14 @@ head(cdata)
 # faster on average than women, or vice versa.
 # Collapse the data again, using 
 # cast(data, var1 + var2 + var3 ... ~ ., function, value = var4, na.rm = T)
-
+ccdata <- dcast(data, Subject + Gender ~., mean, na.rm = TRUE, value.var = 'StimulDS1.RT')
 
 # Take a look at the resulting data frame using head()
-
+head(ccdata)
 
 
 # Compute the t-test to compare the accuracy means of female and male 
 # participants.
 # Which t-test do you need and why? How do you interpret the result?
+t.test(.~Gender, data = ccdata, paired = F)
+# We need unpaired because the reaction times of males doesnot depend n females
