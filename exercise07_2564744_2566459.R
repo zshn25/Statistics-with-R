@@ -51,12 +51,14 @@ library(reshape)
 # Feel free to make some plots, calculate some statistics in order to understand the data.
 head(amis)
 str(amis)
+
 # All our columns have numeric type. Convert the categorial columns to factors.
 names <- names(amis)
 names <- names[2:4]
 amis[names] <- lapply(amis[names], factor)
 
 levels(amis$period) <- c("before", "immediately", "after")
+levels(amis$warning) <- c("sign", "no sign")
 
 # Build a boxplot for the distribution of `speed` for each of `period` values 
 # (before, immediately after and after some time). Build 2 plots side by side
@@ -64,7 +66,7 @@ levels(amis$period) <- c("before", "immediately", "after")
 # (for all plots here and below please use ggplot)
 ggplot(amis, aes(x = period, y = speed)) +
   geom_boxplot() + 
-  facet_grid(. ~ warning)
+  facet_grid(~ warning)
 
 # What can you conclude according this plot? What can you say about people behaviour in
 # different periods: before, immediately after and after some time?
@@ -73,7 +75,8 @@ ggplot(amis, aes(x = period, y = speed)) +
 
 # What are your ideas about why the data with warning==2 (which correspond to the
 # measurements in different times on sites where no sign was erected) was collected?
-
+# The data with no signs was collected in order to compare it with the data collected after the sign was erected.
+# This comparision will show if there was a real difference between these two variables.
 
 
 #######################
@@ -81,7 +84,7 @@ ggplot(amis, aes(x = period, y = speed)) +
 #######################
 # For 1-way ANOVA we will be working with the subset of `amis` where the 
 # warning sign was erected, which corresponds to warning==1.
-
+amisdata <- subset()
 
 # First, let's check the ANOVA assumptions 
 # 1.) Independence assumption is violated, because we have repeated measurements from 
