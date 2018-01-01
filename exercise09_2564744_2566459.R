@@ -27,6 +27,14 @@ library(lme4)
 library(lattice)
 library(Matrix)
 library(ggplot2)
+library(plyr)
+
+library(boot)
+library(reshape2)
+library(reshape)
+library(tidyr)
+library(lsr)
+library(dplyr)
 
 # Read in the data file from gender.Rdata, sem.Rdata or relclause.Rdata.
 # You can choose the one you'd like best based on the description of the items below, 
@@ -99,18 +107,29 @@ library(ggplot2)
 
 #######################################################################################
 #######################################################################################
-
+setwd("C:/UdS/Statistics with R/")
 # a) Take a look at the data.
 gender.data <- read.table("gender.Rdata")
 # relclause.data <- read.table("relclause.Rdata")
 # sem.data <- read.table("sem.Rdata")
 head(gender.data)
+summary(gender.data)
 # b) Plot it (use ggplot for this task and all the tasks below).
 #    (You can provide any plots we have seen so far to interpret the data.
 #    For example, you can study the difference between the subjects (participants) 
 #    in terms of responce time or the difference between items (sentences) in 
 #    terms of response time).
+
+#difference between participants in terms of response time
 ggplot(data = gender.data, aes(x = PARTICIPANT, y = WORD_TIME, color = ITEM_ID)) + geom_point()
+ggplot(data = gender.data, aes(x = PARTICIPANT, y = WORD_TIME, color = ITEM_TYPE)) + geom_point()
+
+#it seems that overall for 'good' items speed is higher, than for 'bad' ones across all participants
+#difference between participants in reading speed depending on item indices
+ggplot(data = gender.data, aes(x = PARTICIPANT, y = WORD_TIME, color = RELWDINDEX)) + geom_point()
+
+#reading speed depending on word index (higher speed in the middle)
+ggplot(data = gender.data, aes(x = RELWDINDEX, y = WORD_TIME, color = ITEM_TYPE)) + geom_point()
 
 #    Below you also find the plot for the dataset 'sleepstudy' from the package 'lme4'.
 #    The figure shows relationships between days without sleeping and reaction 
@@ -125,19 +144,37 @@ print(xyplot(Reaction ~ Days | Subject, sleepstudy, aspect = "xy",
 
 #    Your task is also to figure out how to adapt this plot for our data. What do you 
 #    conclude regarding the reading sentences experiment?
-print(xyplot(PARTICIPANT ~ WORD_TIME | ITEM_ID, gender.data, aspect = "xy",
+summary(gender.data)
+print(xyplot(WORD_TIME ~ RELWDINDEX| PARTICIPANT, gender.data, aspect = "xy",
              layout = c(8,3), type = c("g", "p", "r"),
              index.cond = function(x,y) coef(lm(y ~ x))[1],
-             xlab = "Days of sleep deprivation",
-             ylab = "Average reaction time (ms)"))
+             xlab = "Word index",
+             ylab = "Reading speed (ms)"))
+
+#plotting speed depending on word indices
+ggplot(data = gender.data, aes(PARTICIPANT, WORD_TIME, color = ITEM_TYPE)) + geom_point() + facet_grid(. ~ RELWDINDEX)
 
 # c) Decide whether you want to exclude any data points (provide not only the code,
 #    but also a detailed (!) explanation);
+
+#let's take a look at variation between subjects
+ggplot(gender.data, aes(x=PARTICIPANT, y=WORD_TIME, fill=PARTICIPANT)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")
+
+#we have several 'outliers', for example extremely low speed of reading of last word by participant p0620mr (row 54241)
+#we shall remove this point, as a participant probably just forgot to press "space" bar at the end of the sentence.
+#same with another outlier - with a WORD_TIME value 5036 and index 4 - again not pressing space bar at the end.
+
+gender.data <- gender.data[gender.data$WORD_TIME<5000,]
 
 # d) Try to make a plot where for each word, the average reading 
 #    (collapsing across items and subjects) is shown; in this plot all violations 
 #    are at point 0. Of course, you should not collapse the semantically good vs. 
 #    bad condition.
+
+wordplot <- dcast(gender.data, EXPWORD + ITEM_TYPE ~ 'avg_TIME', mean, na.rm = T, value.var = "WORD_TIME")
+ggplot(data =wordplot, aes(x = EXPWORD, y = avg_TIME, color = ITEM_TYPE)) + geom_point()
 
 # e) Experiment with calculating a linear mixed effects model for this study, 
 #    and draw the appropriate conclusions (give a detailed explanation 
@@ -149,3 +186,13 @@ print(xyplot(PARTICIPANT ~ WORD_TIME | ITEM_ID, gender.data, aspect = "xy",
 
 model = lmer(Reaction ~ Days + (Days|Subject), sleepstudy)
 print(dotplot(ranef(model,condVar=TRUE),  scales = list(x = list(relation = 'free')))[["Subject"]])
+
+#best our model so far
+modl = lmer(WORD_TIME ~ RELWDINDEX + ITEM_TYPE + (1|itemOrder) + (RELWDINDEX|PARTICIPANT), gender.data)
+print(dotplot(ranef(modl, condVar = TRUE), scales = list(x = list(relation = 'free')))[["PARTICIPANT"]])
+
+#time depends on word indices, type of the item, order and participants
+
+#gender.model = lmer(WORD_TIME ~ RELWDINDEX + (RELWDINDEX|ITEM_TYPE) + (RELWDINDEX|ITEM_ID), gender.data)
+#summary(gender.model)
+#print(dotplot(ranef(gender.model,condVar=TRUE),  scales = list(x = list(relation = 'free')))[["RELWDINDEX"]])
