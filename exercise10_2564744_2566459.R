@@ -33,7 +33,7 @@ summary(m1)
 ## More number of subjects leads to better representration of the population and thus more similar to ideal coefficients
 
 # What happens if you change the variance of the error term?
-## If we increase/decrease the error, the standard error of the intercept increases/decreases.
+## If we increase/decrease the variance of error, the standard error of the intercept increases/decreases.
 
 # What happens if you change the effect sizes?
 ## Increasing/Decreasing the effect size will reduce/increase interaction between the predictors.
@@ -116,23 +116,41 @@ predC <- -1* predA + rnorm(n,0,10)
 error <- rnorm (n, 0, 30)
 respcor <- 25 + predA + 3* predB+ 2*predC - (0.02*(predA*predC)) + error
 d2<-data.frame(predA, predB, predC, respcor)
-summary(lm(respcor ~ predA * predC + predB, data=d2))
+d2.lm <- lm(respcor ~ predA * predC + predB, data=d2)
+summary(d2.lm)
 
 sd2 <-as.data.frame(scale(d2))
-summary(lm(respcor ~ predA * predC + predB, data=sd2))
+sd2.lm <- lm(respcor ~ predA * predC + predB, data=sd2)
+summary(sd2.lm)
 
 # What do you observe regarding the results from the models? Do the models obtain the same or different results with / without normalization?
+## Before normalization, predC was shown to have significant affect on the result with Pr(>|t|) < 2e-16. But, after
+## normalization, predC has Pr(>|t|) = 0.15, indicating that it is not significant at all.
 
 # Denormalize the coefficients.
+denormPredA <- coef(sd2.lm)[2] *sd(d2$respcor)/ sd(d2$predA)
+denormPredA
 
+denormPredB <- coef(sd2.lm)[4] *sd(d2$respcor)/ sd(d2$predB)
+denormPredB
+
+denormPredC <- coef(sd2.lm)[3] *sd(d2$respcor)/ sd(d2$predC)
+denormPredC
  
+denormPredAC <- coef(sd2.lm)[5] *sd(d2$respcor)/ (sd(d2$predA) * sd(d2$predC))
+denormPredAC
+
+denormIntercept<-coef(sd2.lm)[1] * sd(d2$respcor)+mean(d2$respcor)-
+  (denormPredA*mean(d2$predA) + denormPredB* mean(d2$predB) + denormPredC* mean(d2$predC))
+denormIntercept
+
 # finally, we will generate repeated measures!
 # For this, we will use the dataframe d; for simplicity of interpretation, we will do no normalization here.
 n<-400
 predA <- rnorm(n, 100, 20)
 predB <- rnorm (n, 60, 30)
 error <- rnorm (n, 0, 30)
-subjno <- 20 #number of subjects; 
+subjno <- 200 #number of subjects; 
 itemno<- 20 # number of items;
 subj<-as.factor(rep(1:subjno,itemno))
 item<-as.factor(rep(1:itemno, each=subjno))
@@ -160,16 +178,21 @@ m2<-lmer(resp ~ predA + predB + (1|subj) + (1| item), data=lmerd)
 summary(m2)
 
 #explain the difference between models m0 m1 and m2
-
+## m0 doesn't include any random effects even when those effects are present in the original data model.
+## m1 is a perfect prediction of the model, including both random effects
+## m2 includes random effect even when there are none in the original data model and thus we get
+## variance and sd of the random effects as zero
 
 # play around with the size of the by item and by subject effects (here: intercepts only)
-
+## For the default sizes, we get intercepts of m1 as 21 and m2 and 25. As we increase the size of subjects and items, 
+## the model can learn the model effect better and we get ~25 for all models as intercept
 
 # generate the data such that subjects differ in terms of how much predictor A affects them.
-
+m1<-lmer(respr ~ predA + predB + (predA|subj) + (1| item), data=lmerd)
 
 
 # then build a mixed effects model that includes a random slope for subjects.
+m1<-lmer(respr ~ predA + predB + (1+predA|subj) + (1| item), data=lmerd)
 
 
 
