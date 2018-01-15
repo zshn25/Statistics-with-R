@@ -45,6 +45,7 @@ library(reshape)
 library(tidyr)
 library(lsr)
 library(dplyr)
+library(MASS)
 
 setwd("C:/UdS/Statistics with R/speed.dating")
 sd <- read.csv("Speed Dating Data.csv")
@@ -57,6 +58,8 @@ glimpse(sd)
 #    abbreviations stand for.
 #    Also, please plot the data in order to inspect it, and discuss the importance of attractiveness, compatibility, and so 
 #    forth in this predictive model.
+
+glmer(dec ~ attr + sinc+ intel+ fun + amb + shar + (1+attr|iid), data = data, family = 'binomial', glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 10000)))
 
 
 #(2) Expand this model to allow varying intercepts for the persons making the
@@ -86,22 +89,49 @@ glimpse(sd)
 # in which the students were enrolled. It is coded as 1 = "General", 2 = "Academic" and 3 = "Vocational". 
 # Let's start with loading the data and looking at some descriptive statistics.
 
+setwd("C:/UdS/Statistics with R/")
+
 p = read.csv("poisson_sim.csv", sep=";")
-p <- within(p, {
+
+p <- within (p, {
   prog <- factor(prog, levels=1:3, labels=c("General", "Academic", "Vocational"))
-  id <- factor(id)
-})
+  id <- factor(id)  
+  })
+
 summary(p)
 
 #(6) Plot the data to see whether program type and math final exam score seem to affect the number of awards.
 
+ggplot(data = p, aes(x = math, y = num_awards, col = prog)) + geom_point()
+
+##graph shows us that people with the highest amounts of awards are all from academic degrees
+##higher math exam results also belong to mostly academics, except for 1 person from vocational program
+
 #(7) Run a generalized linear model to test for significance of effects.
 
-glmer(dec ~ attr + sinc+ intel+ fun + amb + shar + (1+attr|iid), data = data, family = 'binomial', glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun = 10000)))
+mod1 <- glm(num_awards ~ math + prog, data = p)
+drop1(mod1,test="Chisq")
 
+gmod1 <- glmer(num_awards ~ math + prog, family=poisson, data=p)
+anova(mod1, gmod1, test="Chisq")
 
-#(8) Do model comparisons do find out whether the predictors significantly improve model fit.
+#(8) Do model comparisons to find out whether the predictors significantly improve model fit.
+mod2 <- glm(num_awards ~ math, data = p)
+drop1(mod2,test="Chisq")
+
+mod3 <- glm(num_awards ~ prog, data = p)
+drop1(mod3,test="Chisq")
+
+##both predictors are significant
+
+mod4 <- glm(num_awards ~ math + prog + math*prog, data = p)
+anova(mod1, mod4, test="Chisq")
+
+#including interaction significantly improves our model
 
 #(9) Compare to a model that uses a gaussian distribution (normal lm model) for this data.
+nlm <- lm(num_awards ~ math + prog, data = p)
+anova(gmod1, nlm, test="Chisq")
 
-
+## AIC and BIC is lower for gmod1 than for nlm
+##it means that model that uses poisson distribution better fits our data than standard one
